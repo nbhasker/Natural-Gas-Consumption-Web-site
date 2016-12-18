@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- EXTERNAL LIBS-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://www.google.com/jsapi"></script>
+
+    <!-- EXAMPLE SCRIPT -->
+    <script>
+	
+		var table1;
+		var table1view;
+		var table2;
+		var table2view;
+		var paged = 1;
+		var navigating = 0;
+		var endTimeStamp;
+		var startTimeStamp;
+		var fifteen_min_consumption = -1;
+		var rate = -1;
+		var current_consumption = -1;
+		var my_meterid = -1; 
+		var scroll_days = 7;
+		
+		function togglePagedData() {
+			if (paged == 1) {	
+				table1.draw(table1view, {showRowNumber: true, page: 'disable'});
+				table2.draw(table2view, {showRowNumber: true, page: 'disable'});
+				paged = 0;
+			} else {
+				table1.draw(table1view, {showRowNumber: true, page: 'enable'});
+				table2.draw(table2view, {showRowNumber: true, page: 'ensable'});
+				paged = 1;
+			}
+		}
+		
+		function view7Days() {
+			scroll_days = 7;
+			drawChart();
+		}
+		
+		function view30Days() {
+			scroll_days = 30;
+			drawChart();
+		}
+		
+		// onload callback
+		function drawChart() {						
+			var t0 = performance.now();
+
+			var public_key = 'n1yYj38OKVtdw32J2OXv';
+			
+			document.getElementById("meterid").innerHTML = "Retrieving data ...";
+			
+			$('html, body').css("cursor", "wait");
+			
+			var numEntries = (scroll_days + 1)*24*60;
+			current_consumption = -1;
+			fifteen_min_consumption = -1;
+			
+			endTimeStamp = new Date();
+			startTimeStamp = new Date();
+			startTimeStamp.setDate(endTimeStamp.getDate() - (scroll_days - 1));
+			startTimeStamp.setHours(0,0,0,0);			
+				
+			console.log("Page Load - Start Time: ", startTimeStamp, " End Time: ", endTimeStamp);
+			console.log("Accessing: ", numEntries, "Entries");
+
+			// JSONP request
+			var jsonData = $.ajax({
+				url: 'https://data.sparkfun.com/output/' + public_key + '.json' + '?limit=' + numEntries,
+					// '?gte[timestamp]=' + startTimeStamp.toISOString() +
+					// '&lte[timestamp]=' + endTimeStamp.toISOString(),
+				timeout: 30000,
+				// data: {page: 1},
+				dataType: 'jsonp',
+			}).fail(function(jqXHR, textStatus, errorThrown ) {
+				console.log("ERROR -- Status: ", jqXHR.status, " - ", textStatus, " ", errorThrown);
+				alert("Server 30sec Timeout - Please Reload Page");
+			}).done(function (results, textStatus, jqXHR) {
+			
+			console.log("SUCCESS -- Status: ", jqXHR.status, " - ", textStatus);
+			
+			$('html, body').css("cursor", "auto");
+
+			var data = new google.visualization.DataTable();
+			var hourlydata = new google.visualization.DataTable();
+			var dailydata = new google.visualization.DataTable();
+			var gaugedata = new google.visualization.DataTable();
+
+			data.addColumn('datetime', 'Time');
+			data.addColumn('number', 'Cubic Feet');
+			
+			hourlydata.addColumn('datetime', 'Time');
+			hourlydata.addColumn('number', 'Cubic Feet');
+			hourlydata.addColumn({type: 'string', role: 'style'});
+						
+			dailydata.addColumn('datetime', 'Time');
+			dailydata.addColumn('number', 'Cubic Feet');
+			dailydata.addColumn({type: 'string', role: 'style'});
+			
+			gaugedata.addColumn('number', 'Cubic Ft/Hr');
+
+			var current_ts = -1;
+			
+			var hourly_current_hour = -1;
+			var hourly_current_ts = -1;
+			var hourly_start_meter = -1;
+			
+			var daily_current_day = -1;
+			var daily_current_ts = -1;
+			var daily_start_meter = -1;
+			
+			var skipped_rows = 0;
+			var total_rows = 0;
+			var prev_ts;
+			
+			var lastrowcubicfeet;
+			var noon;
+
+			$.each(results, function (i, row) {
+				total_rows++;
+				d = new Date(row.timestamp);
+				cf = parseFloat(row.cubicfeet);
+				
+				// Hack to handle rollover
+				
+				if (cf < 500000)
+					cf += 1000000;
+				
+				if (i>0) {
+					if (d >= prev_ts) {
+						skipped_rows++;
+						// console.log("Row: ", i, " Out of order timestamp skipped: ", row.timestamp, " Total skipped = ", skipped_rows);
+						return;
+					}
+					prev_ts = new Date(row.timestamp);
+				}
+				
+				if (d < startTimeStamp)
+					return;
+				
+				data.addRow([
+					d,
+					cf,
+				]);
+				
+				if (i == 0) {
+					if (current_consumption == -1) {
+						current_consumption = cf; 
+						my_meterid = row.meterid;
+					}
+
+					current_ts = new Date(row.timestamp);
+					prev_ts = new Date(row.timestamp);
+					
+					// console.log("Current Meter Reading: ", current_consumption, " Start TS: ", row.timestamp);
+			
+					document.getElementById("meterid").innerHTML = "Meter Id: " + my_meterid;
+					document.getElementById("meterreading").innerHTML = "Current Meter Reading: " + parseFloat(row.cubicfeet) + " Cubic Feet";// Display unmodified Meter Reading
+						
+				}
+				
+				if (fifteen_min_consumption == -1) {
+					if ((current_ts - d) > 15*60*1000) {
+						fifteen_min_consumption = current_consumption - cf;
+						document.getElementById("rate").innerHTML = "Current Rate: " + 
+							((fifteen_min_consumption/(current_ts - d)*60*60*1000)).toFixed(1) + " Cubic Feet/Hour";
+						// console.log("15 Min TS = ", row.timestamp, " 15 Min Reading: ", row.cubicfeet);
+						rate = fifteen_min_consumption/(current_ts - d)*60*60*1000;
+						rate = Math.round(rate * 10) / 10;
+					}
+				}
+				
+				if (d.getHours() != hourly_current_hour) {
+					if (hourly_current_hour != -1) {
+						if (hourly_current_hour > d.getHours()) {
+							delta_hours = hourly_current_hour - d.getHours();
+						} else {
+							delta_hours = 24 + hourly_current_hour - d.getHours();
+						}
+						
+						if (delta_hours != 1) {
+							console.log("Delta Hours: ", delta_hours, " TS: ", row.timestamp);
+						}
+						
+						hourly_consumption = parseFloat(((hourly_start_meter - cf)/delta_hours).toFixed(0))
+						
+						delta = 0;
+						
+						while (delta < delta_hours) {
+							new_date = new Date(hourly_current_ts);
+							new_date.setHours(new_date.getHours()- delta);
+							new_date.setMinutes(0, 0, 0);
+							if ((new_date.getDay() == 6) || (new_date.getDay() == 0)) {
+								hourlydata.addRow([new_date, hourly_consumption, 'color:DarkBlue' ]);
+							} else {
+								hourlydata.addRow([new_date, hourly_consumption, '' ]);
+							}
+							delta++;
+						}
+					}
+					hourly_current_hour = d.getHours();
+					hourly_current_ts = row.timestamp;
+					hourly_start_meter = cf;
+					// console.log("TS: ", row.timestamp, " Hour: ", hourly_current_hour, " Meter Reading: ", cf);
+				}
+				
+				if (d.getDate() != daily_current_day) {
+					if (daily_current_day != -1) {
+						noon = new Date(daily_current_ts);
+						noon.setHours(12, 0, 0, 0);
+						// noon.setMinutes(0);
+						// noon.setSeconds(0);
+						// noon.setMilliseconds(0);
+						timeNow = new Date();
+						timeNow.setHours(12, 0, 0, 0);
+						if (noon.getTime() == timeNow.getTime()) {
+							dailydata.addRow([noon, daily_start_meter - cf, 'color:SkyBlue']);
+						} else if ((noon.getDay() == 6) || (noon.getDay() == 0)) {
+							dailydata.addRow([noon, daily_start_meter - cf, 'color:DarkBlue']);
+						} else {
+							dailydata.addRow([noon, daily_start_meter - cf, '']);
+						}
+						// console.log("TS: ", noon, " Day: ", noon.getDay());
+					}
+					daily_current_day = d.getDate();
+					daily_current_ts = row.timestamp;
+					daily_start_meter = cf;
+					// console.log("TS: ", row.timestamp, " Day: ", daily_current_day, " Meter Reading: ", cf);
+				}
+				lastrowcubicfeet = cf;
+			});
+			
+			if ((total_rows == 0) || ((total_rows - skipped_rows) == 0)) {
+				console.log("No data - Reloading Page");
+				alert("No data - reload page");
+			}
+			
+			noon = new Date(daily_current_ts);
+			noon.setHours(12);
+			noon.setMinutes(0);
+			noon.setSeconds(0);
+			noon.setMilliseconds(0);		
+			if (dailydata.getNumberOfRows() == 0) {
+				dailydata.addRow([noon, daily_start_meter - lastrowcubicfeet, 'color:SkyBlue']);
+			} else if ((noon.getDay() == 6) || (noon.getDay() == 0)) {
+				dailydata.addRow([noon, daily_start_meter - lastrowcubicfeet, 'color:DarkBlue']);
+			} else {
+				dailydata.addRow([noon, daily_start_meter - lastrowcubicfeet, '']);
+			}
+			
+			console.log("Total rows: ", total_rows, " Total skipped = ", skipped_rows);
+			
+			gaugedata.addRow([rate]);
+			var gauge1 = new google.visualization.Gauge($('#gauge1').get(0));
+			
+			var gauge1Options = {
+				max: 200,
+				width: 400, height: 400,
+				redFrom: 175, redTo: 200,
+				yellowFrom:150, yellowTo: 175,
+				greenFrom:0, GreenTo:150,
+				minorTicks: 5,
+				majorTicks: ["0", , "100", , "200"]
+			};
+			
+			gauge1.draw(gaugedata, gauge1Options);
+			
+			viewstring = "Set " + ((scroll_days == 30)?7:30) + " Day View";
+			
+			document.getElementById("navbuttons").innerHTML = 
+				"<button onclick='view7Days()'>7 Day View</button>" + "    " +
+				"<button onclick='view30Days()'>30 Day View</button>";
+
+
+			var chart1 = new google.visualization.LineChart($('#chart1').get(0));
+		
+			var chart1Title = 'Cumulative Meter Reading';
+		  
+			var chart1Options = {
+				title: chart1Title,
+				titleTextStyle: {
+				  color: '#192538',
+				  fontSize: 24,
+				  bold: true,
+				  italic: false
+				},
+				hAxis: {
+					title: 'Date',
+					titleTextStyle: {
+						color: '#192538',
+						fontSize: 24,
+						italic: false,
+						bold: true
+					},
+					viewWindowMode: 'maximized',
+					// format: 'MMM d, y - HH:mm',
+					format: 'MMM d',
+					minValue: startTimeStamp,
+					maxValue: endTimeStamp,
+					gridlines: {
+						count: scroll_days // number of horizontal gridlines '-1' = automatically compute 
+					},
+				},
+				vAxis: {
+					title: 'Cubic Feet of Natural Gas',
+					titleTextStyle: {
+					color: '#192538',
+					fontSize: 24,
+					italic: false,
+					bold: true
+					},
+					gridlines: {
+					  count: -1 // number of vertical gridlines '-1' = automatically compute 
+					},
+				},
+				chartArea: {
+					top: 50,
+					left: 100,
+					width: 800,
+					// backgroundColor: 'red',
+					height: 390
+				},
+				legend: {
+					position: 'none'
+				},
+				height: 550,
+				width: 900,
+			};
+		  
+			chart1.draw(data, chart1Options);
+			
+			var chart2 = new google.visualization.ColumnChart($('#chart2').get(0));
+			
+			var chart2Title = 'Hourly Gas Consumption';
+		  
+			var chart2Options = {
+				title: chart2Title,
+				titleTextStyle: {
+				  color: '#192538',
+				  fontSize: 24,
+				  bold: true,
+				  italic: false
+				},
+				hAxis: {
+					title: 'Date',
+					titleTextStyle: {
+						color: '#192538',
+						fontSize: 24,
+						italic: false,
+						bold: true
+					},
+					viewWindowMode: 'maximized',
+					minValue: startTimeStamp,
+					maxValue: endTimeStamp,
+					format: 'MMM d',
+					gridlines: {
+						count: scroll_days // number of horizontal gridlines '-1' = automatically compute 
+					}
+				},
+				vAxis: {
+					title: 'Cubic Feet/Hour of Natural Gas',
+					titleTextStyle: {
+					color: '#192538',
+					fontSize: 24,
+					italic: false,
+					bold: true
+					},
+					gridlines: {
+					  count: -1 // number of vertical gridlines '-1' = automatically compute 
+					},
+				},
+				chartArea: {
+					top: 50,
+					left: 100,
+					width: 800,
+					// backgroundColor: 'red',
+					height: 390
+				},
+				legend: {
+					position: 'none'
+				},
+				height: 550,
+				width: 900,
+			};
+			
+			chart2.draw(hourlydata, chart2Options);
+
+			var chart3 = new google.visualization.ColumnChart($('#chart3').get(0));
+			
+			var chart3Title = 'Daily Gas Consumption';
+		  
+			var chart3Options = {
+				title: chart3Title,
+				titleTextStyle: {
+				  color: '#192538',
+				  fontSize: 24,
+				  bold: true,
+				  italic: false
+				},
+				hAxis: {
+					title: 'Date',
+					titleTextStyle: {
+						color: '#192538',
+						fontSize: 24,
+						italic: false,
+						bold: true
+					},
+					viewWindowMode: 'maximized',
+					format: 'MMM d',
+					minValue: startTimeStamp,
+					maxValue: endTimeStamp,
+					gridlines: {
+						count: scroll_days // number of horizontal gridlines '-1' = automatically compute 
+					}
+				},
+				vAxis: {
+					title: 'Cubic Feet/Day of Natural Gas',
+					titleTextStyle: {
+					color: '#192538',
+					fontSize: 24,
+					italic: false,
+					bold: true
+					},
+					gridlines: {
+					  count: -1 // number of vertical gridlines '-1' = automatically compute 
+					},
+					minValue: 0,
+				},
+				chartArea: {
+					top: 50,
+					left: 100,
+					width: 800,
+					// backgroundColor: 'red',
+					height: 390
+				},
+				legend: {
+					position: 'none'
+				},
+				height: 550,
+				width: 900,
+			};
+			
+			chart3.draw(dailydata, chart3Options);
+			
+			table1 = new google.visualization.Table($('#table1').get(0));
+			table1view = new google.visualization.DataView(dailydata);
+			table1view.setColumns([0,1]); // Don't show format in third column
+			table1.draw(table1view, {showRowNumber: true, page: 'enable'});
+			
+			table2 = new google.visualization.Table($('#table2').get(0));
+			table2view = new google.visualization.DataView(hourlydata);
+			table2view.setColumns([0,1]); // Don't show format in third column
+			table2view.hideColumns([2]);  // Don't show format in third column
+			table2.draw(table2view, {showRowNumber: true, page: 'enable'});
+			
+			var t1 = performance.now();
+			
+			console.log("Data Retrieval and processing took " + (t1 - t0) + " milliseconds.");
+			
+			document.getElementById("stats").innerHTML = "Total Records: " + total_rows + 
+				"<br>" +
+				"Skipped (out of sequence) Records: " + skipped_rows + 
+				"<br>" +
+				"Processing Time: " + ((t1-t0)/1000).toFixed(1) + " secs" +
+				"<br>" +
+				"Data Start Time: " + startTimeStamp + 
+				"<br>" +
+				"Data End Time: " + endTimeStamp;
+				
+			document.getElementById("databuttons").innerHTML = 
+				"<button onclick='togglePagedData()'>Toggle Data Paging</button>";
+        })
+	}
+	
+	// Set up for one week's data -- from midnight 6 days ago
+	scroll_days = 7;
+	
+    // load chart lib
+    google.load('visualization', '1', {
+		packages: ['corechart', 'gauge', 'table']
+    });
+	  
+	// console.log("Load 1");
+
+    // call drawChart once google charts is loaded
+    google.setOnLoadCallback(drawChart);
+
+    </script>
+
+  </head>
+  <body>
+	<div id="meterid" style="font-size:24pt; font-family:Lucida Grande,Helvetica,Arial,sans-serif; text-align:center"></div>
+	<hr>
+	<div id="meterreading" style="font-size:24pt; font-family:Lucida Grande,Helvetica,Arial,sans-serif; text-align:center"></div>
+	<hr>
+	<div id="rate" style="font-size:24pt; font-family:Lucida Grande,Helvetica,Arial,sans-serif; text-align:center"></div>
+	<hr>
+	<div id="gauge1"></div>	
+	<hr>
+	<div id="navbuttons"></div>
+	<hr>
+	<div id="chart1"></div>
+	<hr>
+	<div id="chart2"></div>
+	<hr>
+	<div id="chart3"></div>
+	<hr>
+	<div id="table1"></div>
+	<hr>
+	<div id="table2"></div>
+	<hr>
+	<div id="databuttons"></div>
+	<hr>
+	<div id="stats" style="font-size:12pt; font-family:Lucida Grande,Helvetica,Arial,sans-serif; text-align:left"></div>
+
+
+  </body>
+</html>
