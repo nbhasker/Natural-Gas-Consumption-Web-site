@@ -54,7 +54,7 @@ Once this runs, log back in to https://data.sparkfun.com/ and verify that your d
 
 The GasMeterVisualSummary.html can be used locally as is or copied into an actual web-page using whatever tools are available. On Weebly.com I used a "custom HTML" field and copied the code as is into that block.
 
-## Trouble-shooting
+## Troubleshooting
 
 Open the developer tools window in your browser (e.g. CTRL+SHIFT+1 in Chrome) and look at the console and network areas for hints. 
 And of course check if the system that has the USB dongle is still running normally.
@@ -67,6 +67,8 @@ The data occasionally gets returned with sensor values out of order. These are d
 
 If there is missing data for a few hours, the consumption is evenly apportioned out over the intervening hours so that there isn't a misleading usage spike in the hourly consumption graphs. 
 But this is not done over days if data is missing for several days. So in that case the daily consumption graph will show a spike.
+
+The meters are assumed to roll-over at 999999 and this is handled. If your meter has a different roll-over point the code will have to be modified suitably.
 
 ## Acknowledgments
 This is obviously built on some amazing foundational software!
