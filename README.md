@@ -56,7 +56,7 @@ The GasMeterVisualSummary.html can be used locally as is or copied into an actua
 
 ## Troubleshooting
 
-Open the developer tools window in your browser (e.g. CTRL+SHIFT+1 in Chrome) and look at the console and network areas for hints. 
+Open the developer tools window in your browser (e.g. CTRL+SHIFT+I in Chrome) and look at the console and network areas for hints. 
 And of course check if the system that has the USB dongle is still running normally.
 In my experience the most common failure has been that the sensing system had a Windows update and rebooted overnight. And I haven't set up the scripts to start automatically.
 
