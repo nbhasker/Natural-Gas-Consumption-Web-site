@@ -1,91 +1,49 @@
 # Residential Natural Gas Consumption Web-site
 
-JQuery and Google Charts based web-site to display residential natural gas consumption captured using an RTL-SDR SW defined radio that decodes AMR transmissions from the gas-meter. The data from
-the gas meter - transmitted using the AMR protocol in the 900MHz band is decoded by the RTLAMR software and then transmitted using a couple of simple shell scripts to a free data repository at data.sparkfun.com.
+This is a JQuery and Google Charts based web-site to display residential natural gas consumption captured using an RTL-SDR software defined radio that decodes AMR transmissions from the gas meter. The data from
+the gas meter - transmitted using the AMR protocol in the 900MHz band is decoded by the RTLAMR software and then transmitted using a couple of simple shell scripts to a free data repository at data.sparkfun.com. 
+The web-site retrieves the data from data.sparkfun.com and renders a 7-day or 30-day view with a variety of graphs. Try it out at http://nbhasker.weebly.com/.
 
 ## Getting Started
 
 There are three distinct parts to the project:
-* Setting up the SW defined radio with RTLAMR using downloadable software
+* Setting up the SW defined radio with RTLAMR using downloadable software to capture data from the gas meter
 * Using the two simple scripts included in this project to send the data to data.sparkfun.com
 * Setting up a web-site using the HTML/JavaScript included above
 
-### Prerequisites
+### Setting up the SW Defined Radio
+Follow the excellent quick-start guide at http://www.rtl-sdr.com/. I have the USB dongle running on a Windows 10 laptop though all the usual platforms are supported. 
+I want to move this to a Raspberry Pi soon but haven't started the process yet.
+1. You will of course have to obtain a USB dongle for the radio receiver. This will run you about $20-$30. 
+There are several suggestions in the quick-start guide. 
+I use the RTL-SDR dongle that I purchased from Amazon at the end of 2015. I believe there's now a new improved version.
+2. Follow the software installation instructions for drivers and the basic software that you can use to tune in an FM radio station to make sure everything is working. I use rtl_tcp.exe to manage the USB device and the applications communicate to it via TCP/IP. This is included in the base sofwtare package.
+3. You then need to install the RTLAMR software that decodes the transmissions from the natural gas meter. Start at http://www.rtl-sdr.com/rtlamr-rtl-sdr-receiver-900mhz-ism-smart-meters/.
+4. Run RTLAMR and it will display the current meter readings and meter id for the meters it receives. Identify your meter by matching the meter ids displayed with the meter id on your gas meter to verify that you are able to decode your gas meter. And note your meter id as you will need it in the next step.
 
-What things you need to install the software and how to install them
+### Using the shell scripts to send data to data.sparkfun.com
+You need to get a free data repository for the meter data by signing up at https://data.sparkfun.com/. You will get two keys - a "public" key that allows read access to the stream and a "private" key that allows write access to the stream. 
+And no, despite the names these are not a public key cryptography key pair. They are just tokens and presumably you will want to keep the "private" key that allows write access secret. The "public" key that enables reading will be in the web-site JavaScript. Once you have these keys, replace the "XXXX" string in gasmeter.sh with your key.
 
-```
-Give examples
-```
 
-### Installing
+I use two command line windows.
+1. In the first, I run rtl_tcp.exe to control the USB dongle and deliver the raw data to clients over TCP/IP
+2. In the second, window I run startlogging.sh. This launches RTLAMR with the appropriate parameters and pipes the output to the second shell script (gasmeter.sh) that parses the input it receives from RTLAMR and sends the data on to data.spark.fun using curl. Edit the filter-id parameter in startlogging.sh to select your gas meter id. Just to make things easier, the second command line window is a bash shell. It's currently cygwin but you could also use the Windows 10 Anniversary Edition built-in Ubuntu user mode and bash support.
 
-A step by step series of examples that tell you have to get a development env running
+Once this runs, log back in to https://data.sparkfun.com/ and verify that your data is being recorded there.
 
-Say what the step will be
+### Creating the web-site
 
-```
-Give the example
-```
+The GasMeterVisualSummary.html can be used locally as is or copied into an actual web-page using whatever tools are available. On Weebly.com I used a "custom HTML" field and copied the code as is into that block.
 
-And repeat
+## Trouble-shooting
 
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+Open the debug window in your browser and look at the console and network fields. Data transfer from data.sparkfun.com is sometimes unreliable. Currently there's a 30 second timeout.
 
 ## Acknowledgments
+This is obviously built on some amazing foundational software!
 
-* Hat tip to anyone who's code was used
-* Inspiration
-* etc
+* The excellent software available for the RTL-SDR dongles is truly amazing. Thank you!
+* RTLAMR does all the heavy-lifting here. Thank you!
+* There were other very helpful contributions on how to get started with JQuery and Google Charts to display data from data.sparkfun.com repositories. 
+I need to track down the authors. But there help is much appreciated!
