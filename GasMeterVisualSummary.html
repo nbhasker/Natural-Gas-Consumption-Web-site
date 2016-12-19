@@ -117,15 +117,27 @@
 			
 			var lastrowcubicfeet;
 			var noon;
+			
+			console.log("Array Length: ", results.length);
+			console.log("First Record: ", results[0]);
+			console.log("Last Record: ",results[results.length-1]);
+			
+			var meter_overflow = 0;
+			
+			if (parseFloat(results[0].cubicfeet) < parseFloat(results[results.length-1].cubicfeet)) {
+				console.log("Meter Overflow detected");
+				meter_overflow = 1;
+			}
 
+			
 			$.each(results, function (i, row) {
 				total_rows++;
 				d = new Date(row.timestamp);
 				cf = parseFloat(row.cubicfeet);
 				
-				// Hack to handle rollover
+				// Handle meter overflow at 999999
 				
-				if (cf < 500000)
+				if (meter_overflow && cf < 500000)
 					cf += 1000000;
 				
 				if (i>0) {
