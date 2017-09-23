@@ -48,7 +48,8 @@
 		function drawChart() {						
 			var t0 = performance.now();
 
-			var public_key = 'n1yYj38OKVtdw32J2OXv';
+			var api_key = 'FMAWS3XRTGAA97Y7';
+			var channel_id = 329940
 			
 			document.getElementById("meterid").innerHTML = "Retrieving data ...";
 			
@@ -67,8 +68,9 @@
 			console.log("Accessing: ", numEntries, "Entries");
 
 			// JSONP request
+			// curl https://api.thingspeak.com/channels/329940/feeds.json\?api_key=FMAWS3XRTGAA97Y7\&days=7
 			var jsonData = $.ajax({
-				url: 'https://data.sparkfun.com/output/' + public_key + '.json' + '?limit=' + numEntries,
+				url: 'https://api.thingspeak.com/channels/' + channel_id + '/feeds.json' + '?api_key=' + api_key + '&days=' + scroll_days,
 					// '?gte[timestamp]=' + startTimeStamp.toISOString() +
 					// '&lte[timestamp]=' + endTimeStamp.toISOString(),
 				timeout: 30000,
@@ -77,9 +79,13 @@
 			}).fail(function(jqXHR, textStatus, errorThrown ) {
 				console.log("ERROR -- Status: ", jqXHR.status, " - ", textStatus, " ", errorThrown);
 				alert("Server 30sec Timeout - Please Reload Page");
-			}).done(function (results, textStatus, jqXHR) {
+			}).done(function (thingspeak_results, textStatus, jqXHR) {
 			
 			console.log("SUCCESS -- Status: ", jqXHR.status, " - ", textStatus);
+			
+			
+			// Map from Thingspeak results to original (data.sparkfun.com) results
+			results = thingspeak_results.feeds.reverse();
 			
 			$('html, body').css("cursor", "auto");
 
@@ -128,9 +134,13 @@
 				console.log("Meter Overflow detected");
 				meter_overflow = 1;
 			}
-
 			
 			$.each(results, function (i, row) {
+				// Map from Thingspeak fields to original (data.sparkfun.com) fields
+				row.timestamp = row.field1;
+				row.meterid   = row.field2;
+				row.cubicfeet = row.field3;
+				
 				total_rows++;
 				d = new Date(row.timestamp);
 				cf = parseFloat(row.cubicfeet);
