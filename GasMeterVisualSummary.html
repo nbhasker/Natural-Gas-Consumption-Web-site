@@ -141,6 +141,12 @@
 				row.meterid   = row.field2;
 				row.cubicfeet = row.field3;
 				
+				if (row.timestamp == null || row.meterid == null || row.cubicfeet == null) {
+					skipped_rows++;
+					console.log("Row: ", i, " Null data skipped");
+					return;
+				}
+				
 				total_rows++;
 				d = new Date(row.timestamp);
 				cf = parseFloat(row.cubicfeet);
