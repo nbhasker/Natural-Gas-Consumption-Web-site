@@ -85,4 +85,4 @@ I need to track down the authors. But there help is much appreciated!
 * Gasmeter.sh and GasMeterVisualSummary.html were modified to use the Thingspeak.com API. The changes were quite small
 * Startlogging.sh now includes awk in the pipeline to send through only every sixth record received from RTLAMR to gasmeter.sh. This helps work around the limit of being able to retrieve only 8000 records at a time from Thingspeak.com. With a record every minute, this only covered about 5 days. By limiting the frequency of updates we should have data for a full 30 days
 
-These changes have been checked in to the Thingspeak branch.
+These changes have been checked in to the ThingSpeak branch.
