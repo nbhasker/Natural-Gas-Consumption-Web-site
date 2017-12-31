@@ -8,6 +8,8 @@ Cumulative, daily, hourly and instantaneous consumption are calculated and displ
 
 Try it out at http://nbhasker.weebly.com/.
 
+**Please note that as of September 2017, the data repository has been switched to Thingspeak.com as data.sparkfun.com was abrupty shut down. Scroll down for more information.**
+
 ## Getting Started
 
 There are three distinct parts to the project:
@@ -77,3 +79,10 @@ This is obviously built on some amazing foundational software!
 * RTLAMR does all the heavy-lifting here. Thank you!
 * There were other very helpful contributions on how to get started with JQuery and Google Charts to display data from data.sparkfun.com repositories. 
 I need to track down the authors. But there help is much appreciated!
+
+## Update: As of September 2017, the data repository is on Thingspeak.com as data.sparkfun.com was abruptly shut down
+
+* Gasmeter.sh and GasMeterVisualSummary.html were modified to use the Thingspeak.com API. The changes were quite small
+* Startlogging.sh now includes awk in the pipeline to send through only every sixth record received from RTLAMR to gasmeter.sh. This helps work around the limit of being able to retrieve only 8000 records at a time from Thingspeak.com. With a record every minute, this only covered about 5 days. By limiting the frequency of updates we should have data for a full 30 days
+
+These changes have been checked in to the Thingspeak branch.
