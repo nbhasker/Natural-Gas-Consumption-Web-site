@@ -75,7 +75,7 @@
 					// '&lte[timestamp]=' + endTimeStamp.toISOString(),
 				timeout: 30000,
 				// data: {page: 1},
-				dataType: 'jsonp',
+				dataType: 'json',
 			}).fail(function(jqXHR, textStatus, errorThrown ) {
 				console.log("ERROR -- Status: ", jqXHR.status, " - ", textStatus, " ", errorThrown);
 				alert("Server 30sec Timeout - Please Reload Page");
