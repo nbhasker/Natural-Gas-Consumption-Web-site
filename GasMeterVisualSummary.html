@@ -20,7 +20,7 @@
 		var rate = -1;
 		var current_consumption = -1;
 		var my_meterid = -1; 
-		var scroll_days = 7;
+		var scroll_days = 30;
 		
 		function togglePagedData() {
 			if (paged == 1) {	
@@ -123,16 +123,18 @@
 			
 			var lastrowcubicfeet;
 			var noon;
-			
-			console.log("Array Length: ", results.length);
-			console.log("First Record: ", results[0]);
-			console.log("Last Record: ",results[results.length-1]);
-			
+						
 			var meter_overflow = 0;
 			
-			if (parseFloat(results[0].cubicfeet) < parseFloat(results[results.length-1].cubicfeet)) {
-				console.log("Meter Overflow detected");
-				meter_overflow = 1;
+			console.log("Array Length: ", results.length);
+			if (results.length != 0) {
+				console.log("First Record: ", results[0]);
+				console.log("Last Record: ",results[results.length-1]);	
+							
+				if (parseFloat(results[0].cubicfeet) < parseFloat(results[results.length-1].cubicfeet)) {
+					console.log("Meter Overflow detected");
+					meter_overflow = 1;
+				}
 			}
 			
 			$.each(results, function (i, row) {
@@ -502,8 +504,8 @@
         })
 	}
 	
-	// Set up for one week's data -- from midnight 6 days ago
-	scroll_days = 7;
+	// Set up for 30 days data
+	scroll_days = 30;
 	
     // load chart lib
     google.load('visualization', '1', {
