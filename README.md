@@ -8,7 +8,7 @@ Cumulative, daily, hourly and instantaneous consumption are calculated and displ
 
 Try it out at http://nbhasker.weebly.com/.
 
-**Please note that as of September 2017, the data repository has been switched to Thingspeak.com as data.sparkfun.com was abrupty shut down. Scroll down for more information.**
+**Please note that as of September 2017, the data repository has been switched to Thingspeak.com as data.sparkfun.com was abruptly shut down. Scroll down for more information.**
 
 ## Getting Started
 
