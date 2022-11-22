@@ -86,3 +86,11 @@ I need to track down the authors. But there help is much appreciated!
 * Startlogging.sh now includes awk in the pipeline to send through only every sixth record received from RTLAMR to gasmeter.sh. This helps work around the limit of being able to retrieve only 8000 records at a time from Thingspeak.com. With a record every minute, this only covered about 5 days. By limiting the frequency of updates we should have data for a full 30 days
 
 These changes have been checked in to the ThingSpeak branch.
+
+## Update: November 2022 - I've added a bash script lastupdate.sh to send periodic email via IFTTT indicating the age of the last update in the database as a health check of the monotoring system
+* The script retrieves the timestamp in the last record from the ThingSpeak database and after some processing sends the information to a Webhooks based IFTTT applet that sends the email 
+* The IFTTT applet will receive a formatted last update timestamp in field "value1" and the number of seconds from the current time to that last update time in field "value2" 
+* All the credentials are stored in a secondary file lastupdatesecrets.sh in the same directory as the main script and in the working directory when the main script is invoked
+* The script lastupdate.sh can be run on a desktop Windows PC under WSL and scheduled to run periodically using the Windows Task Scheduler
+    * This can be accomplished by setting the WSL binary (most likely C:\Windows\System32\wsl.exe) as the program to be run and the script (lastupdate.sh) as the only argument in the Task Scheduler task
+    * Set the working directory to be the directory where the script resides in Windows format i.e C:\Users\... and not in WSL format
