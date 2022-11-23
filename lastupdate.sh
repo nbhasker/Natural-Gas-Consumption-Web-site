@@ -28,10 +28,18 @@ echo $currenttimesecs
 deltasecs=$(($currenttimesecs - $lastupdatesecs))
 echo $deltasecs
 
-# Convert the last update time to a human readable string for display in the IFTTT email and urlify
-lastupdateurl=$(date -d "$lastupdate" "+%-I:%M:%S %p on %A, %B %e, %Y" | sed -e 's/ /%20/g')
+# Convert the last update time to a human readable string for display in the IFTTT email
+#lastupdateurl=$(date -d "$lastupdate" "+%-I:%M:%S %p on %A, %B %e, %Y" | sed -e 's/ /%20/g')
+lastupdatefmt=$(date -d "$lastupdate" "+%-I:%M:%S %p on %A, %B %e, %Y")
 echo $lastupdateurl
 
+# Compose the email subject and body and urlify -- the same string is used for both
+mailstring="Last Gas Logger update was ${deltasecs} seconds ago at ${lastupdatefmt}"
+echo $mailstring
+
+mailstringurl=$(echo $mailstring | sed -e 's/ /%20/g')
+echo $mailstringurl
+
 # Send the last update time and delta time to the IFTTT webhooks service as value1 and value2 query parameters
-curl -s "https://maker.ifttt.com/trigger/$IFTTT_EVENT/with/key/$IFTTT_API_KEY?value1=$lastupdateurl&value2=$deltasecs"
+curl -s "https://maker.ifttt.com/trigger/$IFTTT_EVENT/with/key/$IFTTT_API_KEY?value1=$mailstringurl&value2=$mailstringurl"
 
