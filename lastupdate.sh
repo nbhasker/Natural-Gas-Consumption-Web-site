@@ -29,7 +29,6 @@ deltasecs=$(($currenttimesecs - $lastupdatesecs))
 echo $deltasecs
 
 # Convert the last update time to a human readable string for display in the IFTTT email
-#lastupdateurl=$(date -d "$lastupdate" "+%-I:%M:%S %p on %A, %B %e, %Y" | sed -e 's/ /%20/g')
 lastupdatefmt=$(date -d "$lastupdate" "+%-I:%M:%S %p on %A, %B %e, %Y")
 echo $lastupdateurl
 
@@ -40,6 +39,6 @@ echo $mailstring
 mailstringurl=$(echo $mailstring | sed -e 's/ /%20/g')
 echo $mailstringurl
 
-# Send the last update time and delta time to the IFTTT webhooks service as value1 and value2 query parameters
+# Send the subject and email body to the IFTTT webhooks service as value1 and value2 query parameters
 curl -s "https://maker.ifttt.com/trigger/$IFTTT_EVENT/with/key/$IFTTT_API_KEY?value1=$mailstringurl&value2=$mailstringurl"
 
