@@ -3,6 +3,8 @@
 # Thingspeak and IFTTT identifiers and API keys (TS_CHANNEL, TS_READ_API_KEY, IFTTT_EVENT and IFTTT_API_KEY) are in lastupdatesecrets.sh
 # So this script must be run from the same directory as lastupdatesecrets.sh
 
+MAXDELTASECS=600
+
 TS_CHANNEL=X
 TS_READ_API_KEY=X
 IFTTT_EVENT=X
@@ -34,6 +36,14 @@ echo $lastupdateurl
 
 # Compose the email subject and body and urlify -- the same string is used for both
 mailstring="Last Gas Logger update was ${deltasecs} seconds ago at ${lastupdatefmt}"
+
+# Prepend status text
+if [[ $deltasecs -le $MAXDELTASECS ]]; then
+	mailstring="Status OK - ${mailstring}"
+else
+	mailstring="Check Status - ${mailstring}"
+fi
+
 echo $mailstring
 
 mailstringurl=$(echo $mailstring | sed -e 's/ /%20/g')
