@@ -3,6 +3,11 @@
 # Thingspeak and IFTTT identifiers and API keys (TS_CHANNEL, TS_READ_API_KEY, IFTTT_EVENT and IFTTT_API_KEY) are in lastupdatesecrets.sh
 # So this script must be run from the same directory as lastupdatesecrets.sh
 
+exec &>> lastupdate.log
+
+echo -e "\n\n*** New Entry ***"
+date 
+
 MAXDELTASECS=600
 
 TS_CHANNEL=X
