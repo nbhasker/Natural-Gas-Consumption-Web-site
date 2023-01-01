@@ -87,10 +87,18 @@ I need to track down the authors. But there help is much appreciated!
 
 These changes have been checked in to the ThingSpeak branch.
 
-## Update: November 2022 - I've added a bash script lastupdate.sh to send periodic email via IFTTT indicating the age of the last update in the database as a health check of the monotoring system
+## Update: November 2022 - I've added a bash script lastupdate.sh to send periodic email via IFTTT indicating the age of the last update in the database as a health check of the monitoring system
 * The script retrieves the timestamp in the last record from the ThingSpeak database and after some processing sends the information to a Webhooks based IFTTT applet that sends the email 
 * The IFTTT applet is generic and receives the email subject in field "value1" and the email body in field "value2" 
-* All the credentials are stored in a secondary file lastupdatesecrets.sh in the same directory as the main script and in the working directory when the main script is invoked
+* All the credentials are stored in a secondary file lastupdatesecrets.sh in the same directory as the main script and must be in the working directory when the main script is invoked
 * The script lastupdate.sh can be run on a desktop Windows PC under WSL and scheduled to run periodically using the Windows Task Scheduler
     * This can be accomplished by setting the WSL binary (most likely C:\Windows\System32\wsl.exe) as the program to be run and the script (lastupdate.sh) as the only argument in the Task Scheduler task
+    * Set the working directory to be the directory where the script resides in Windows format i.e C:\Users\... and not in WSL format
+
+## Update: December 2022 - I've added a Python script lastupdate.py to send periodic email via IFTTT indicating the age of the last update in the database as a health check of the monitoring system. 
+* This essentially replaces the lastupdate.sh bash script as running WSL under Windows Task Scheduler turned out to be unreliable
+* The IFTTT applet is generic and receives the email subject in field "value1" and the email body in field "value2" 
+* All the credentials are stored in a secondary file lastupdatesecrets.py in the same directory as the main script and must be in the working directory when the main script is invoked
+* The script lastupdate.py can be run on a desktop Windows PC under WSL and scheduled to run periodically using the Windows Task Scheduler
+    * This can be accomplished by setting the python binary ("where python" at a command prompt will show the full pathname) as the program to be run and the script (lastupdate.py) as the only argument in the Task Scheduler task
     * Set the working directory to be the directory where the script resides in Windows format i.e C:\Users\... and not in WSL format
