@@ -36,12 +36,12 @@ lastupdatetimefmt = lastupdatetime.strftime("%#I:%M:%S %p on %A, %B %e");
 
 # Compose the email subject and body -- the same string is used for both
 # The requests module handles urlification of blanks
-mailstring = f"Last Gas Logger update was {deltatimeseconds:.0f} seconds ago at {lastupdatetimefmt}"
+mailstring = f"Last update was {deltatimeseconds:.0f} seconds ago at {lastupdatetimefmt}"
 
 if (deltatimeseconds <= MAXDELTASECONDS):
-    mailstring = f"Status OK - {mailstring}"
+    mailstring = f"Gas Logger Status OK - {mailstring}"
 else:
-    mailstring = f"Check Status - {mailstring}"
+    mailstring = f"Check Gas Logger Status - {mailstring}"
 
 print(mailstring)
 
