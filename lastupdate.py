@@ -14,7 +14,7 @@ import lastupdatesecrets as l
 
 PROGRAM_NAME = "Gas Monitor Last Update Tracker"
 VERSION = 'V0.1'
-MAXDELTASECONDS = 600
+MAXDELTASECONDS = 1800
 
 # Set exception handler for otherwise unhandled exceptions
 def handle_exception(exc_type, exc_value, exc_traceback):
