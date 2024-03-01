@@ -9,12 +9,18 @@ import logging
 from datetime import datetime, timezone
 import dateutil.parser
 import urllib.parse
+import smtplib
+from   email.mime.text import MIMEText
+from   email.utils import formataddr
 
 import lastupdatesecrets as l
 
-PROGRAM_NAME = "Gas Monitor Last Update Tracker"
-VERSION = 'V0.1'
+PROGRAM_NAME    = "Gas Monitor Last Update Tracker"
+VERSION         = 'V0.2'
 MAXDELTASECONDS = 1800
+
+SMTP_SERVER   = 'smtp.gmail.com'
+SMTP_TLS_PORT = 587
 
 # Set exception handler for otherwise unhandled exceptions
 def handle_exception(exc_type, exc_value, exc_traceback):
@@ -24,6 +30,40 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
     raise SystemExit(exc_info=(exc_type, exc_value, exc_traceback))
+
+def send_email(subject, body, to_email, from_email, from_name, app_password):
+    """
+    Send a plaintext email using Gmail's SMTP server with exception handling.
+
+    Parameters:
+    - subject: Email subject as a string.
+    - body: Email body as a string.
+    - to_email: Recipient email address as a string.
+    - from_email: Sender's Gmail address as a string.
+    - app_password: Sender's Gmail App Password as a string.
+    """
+    try:
+        # Create a plaintext message
+        msg            = MIMEText(body)
+        msg['Subject'] = subject
+        msg['From']    = formataddr((from_name, from_email))
+        msg['To']      = to_email
+
+        # Gmail SMTP server setup
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_TLS_PORT)
+        server.starttls()
+        server.login(from_email, app_password)
+
+        # Send email
+        server.send_message(msg)
+        server.quit()
+
+        logging.info("Email sent successfully!")
+
+    except smtplib.SMTPException as e:
+        logging.error(f"SMTP error occurred: {e}")
+    except Exception as e:
+        logging.error(f"An error occurred in send_email(): {e}")
 
 sys.excepthook = handle_exception
 
@@ -67,10 +107,13 @@ else:
 
 logging.info(f"Mail string: {mailstring}")
 
-payload = {'value1': mailstring, 'value2': mailstring}
-r = requests.get(f"https://maker.ifttt.com/trigger/{l.IFTTT_EVENT}/with/key/{l.IFTTT_API_KEY}", params=payload)
-logging.info(f"Returned url: {r.url}")
-logging.info(f"Returned status: {r.status_code}")
-logging.info(f"Returned text: {r.text}")
+send_email(
+    subject      = mailstring,
+    body         = mailstring,
+    to_email     = l.GMAIL_TO_EMAIL,
+    from_email   = l.GMAIL_FROM_EMAIL,
+    from_name    = l.GMAIL_FROM_NAME,
+    app_password = l.GMAIL_APP_PASSWORD
+)
 
 logging.info(f"*** {PROGRAM_NAME} Ended ***")
