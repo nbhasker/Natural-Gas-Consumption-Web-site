@@ -102,3 +102,6 @@ These changes have been checked in to the ThingSpeak branch.
 * The script lastupdate.py can be run on a desktop Windows PC under WSL and scheduled to run periodically using the Windows Task Scheduler
     * This can be accomplished by setting the python binary ("where python" at a command prompt will show the full pathname) as the program to be run and the script (lastupdate.py) as the only argument in the Task Scheduler task
     * Set the working directory to be the directory where the script resides in Windows format i.e C:\Users\... and not in WSL format
+
+## Update: March 2024 - Switched to using Gmail via SMTP to send email from lastupdate.py
+* IFTTT email stopped working as it is now part of the paid "Pro" service so I thought I should look for something else
