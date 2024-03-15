@@ -103,7 +103,7 @@ mailstring = f"Last update was {deltatimeseconds:.0f} seconds ago at {lastupdate
 if (deltatimeseconds <= MAXDELTASECONDS):
     mailstring = f"Gas Logger Status OK - {mailstring}"
 else:
-    mailstring = f"Check Gas Logger Status - {mailstring}"
+    mailstring = f"*** Check Gas Logger Status *** - {mailstring}"
 
 logging.info(f"Mail string: {mailstring}")
 
