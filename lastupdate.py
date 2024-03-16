@@ -29,7 +29,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         return
 
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-    raise SystemExit(exc_info=(exc_type, exc_value, exc_traceback))
+    raise SystemExit()
 
 def send_email(subject, body, to_email, from_email, from_name, app_password):
     """
